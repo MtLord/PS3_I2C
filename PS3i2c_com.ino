@@ -7,7 +7,7 @@
 
 USB Usb;
 //USBHub Hub1(&Usb); // Some dongles have a hub inside
-#define USBMODE
+//#define USBMODE
 #ifdef USBMODE
 PS3USB PS3(&Usb);
 #else
@@ -18,7 +18,7 @@ PS3BT PS3(&Btd, 0x00, 0x15, 0x83, 0x3D, 0x0A, 0x57); // This will also store the
 
 bool printTemperature, printAngle;
 
-
+bool int_flag=false;
 
                                   // Set CS pin
 
@@ -33,23 +33,21 @@ if (Usb.Init() == -1)
   }
   Serial.print(F("\r\nPS3 Bluetooth Library Started"));
    Wire.begin(0x74); // スレーブのアドレスを0x74に設定
-    Wire.setClock(400000);
-   Wire.onRequest(ReSend); // マスターに呼ばれたときに呼び出す関数
-   
+   Wire.setClock(400000);
+   Wire.onRequest(IntCallBack); // マスターに呼ばれたときに呼び出す関数
+   Serial.print(F("\r\nI2C Set Up Finished"));
+//   pinMode(LED_BUILTIN, OUTPUT);
 }
 
-    unsigned char len = 0;
-    unsigned long id =0;
-     unsigned char buf[8];
 const int IN[8] = {0, 0, LeftHatX, LeftHatY, RightHatX, RightHatY, L2, R2};
-
 const int BUTTON[2][8] = {{LEFT, DOWN, RIGHT, UP, START, R3, L3, SELECT},{SQUARE, CROSS, CIRCLE, TRIANGLE, R1, L1, 0, 0}};
 byte data[8];
-int count=0;
-void ReSend()
+
+int ledcount=0;
+int state = 0;
+void IntCallBack()
 {
-  
-   Wire.write(data[0]);
+  Wire.write(data[0]);
    Wire.write(data[1]);
    Wire.write(data[2]);
    Wire.write(data[3]);
@@ -57,9 +55,8 @@ void ReSend()
    Wire.write(data[5]);
    Wire.write(data[6]);
    Wire.write(data[7]);
-  count++;
-   Serial.print(count);
-    Serial.print("\r\n");
+  
+
 }
 void ReadButton() 
 {
@@ -98,8 +95,8 @@ void loop()
   Usb.Task();
   if (PS3.getButtonClick(PS) && PS3.PS3Connected)
   {
-     //PS3.disconnect();
+     PS3.disconnect();
   }
      ReadButton() ;
-     //putchar_debug();
+ 
 }
